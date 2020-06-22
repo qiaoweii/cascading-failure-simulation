@@ -53,14 +53,6 @@ function show_image(network) {
 
   console.log("show image");
 
-  var color = d3.scale.category20();
-
-  let force = d3.layout
-    .force()
-    .charge(-120)
-    .linkDistance(30)
-    .size([widthOfSVG, heightOfSVG]);
-
   let svg = d3
     .select(containerId)
     .append("svg")
@@ -73,7 +65,14 @@ function show_image(network) {
   console.log(myNodes);
   console.log(myLines);
 
-  force.nodes(myNodes).links(myLines).start();
+  let force = d3.layout
+    .force()
+    .nodes(myNodes)
+    .links(myLines)
+    .size([widthOfSVG, heightOfSVG])
+    .linkDistance(60)
+    .charge(-700)
+    .start();
 
   var lines = graph
     .selectAll("line.line")
@@ -98,6 +97,8 @@ function show_image(network) {
     .attr("href", function (d) {
       return iconsArr[d.type];
     });
+
+  node.call(getDragBehavior(force));
 
   force.on("tick", function () {
     lines
@@ -169,4 +170,30 @@ function createNodeInfoHtml(node) {
   console.log(node.index);
   console.log(node.type);
   return html;
+}
+
+function getDragBehavior(force) {
+  return d3.behavior
+    .drag()
+    .origin(function (d) {
+      return d;
+    })
+    .on("dragstart", dragstart)
+    .on("drag", dragging)
+    .on("dragend", dragend);
+
+  function dragstart(d) {
+    d3.event.sourceEvent.stopPropagation();
+    d3.select(this).classed("dragging", true);
+    force.start();
+  }
+
+  function dragging(d) {
+    d.x = d3.event.x;
+    d.y = d3.event.y;
+  }
+
+  function dragend(d) {
+    d3.select(this).classed("dragging", false);
+  }
 }

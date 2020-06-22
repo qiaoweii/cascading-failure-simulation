@@ -15,9 +15,11 @@
   margin: 0;
   padding: 0.5em;
   list-style: none;
-}
-
-.node-info ul li {
   color: #fff;
   font-size: 12px;
 }
+
+/* .node-info ul li {
+  color: #fff;
+  font-size: 12px;
+} */
