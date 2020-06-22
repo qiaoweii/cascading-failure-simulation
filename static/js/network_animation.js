@@ -15,64 +15,31 @@ function load_data() {
     .catch((error) => console.log(error.response));
 }
 
-// function load_data(after) {
-
-//   console.log("load data");
-//   var k = 0;
-
-//   function load_next() {
-//     if (k >= files_to_load.length) {
-//       after();
-//       return;
-//     }
-
-//     var file_name = "/" + files_to_load[k] + ".json";
-
-//     d3.json(file_name, function (data) {
-//       network[files_to_load[k]] = data;
-//       k++;
-//       load_next();
-//     });
-//   }
-
-//   load_next();
-// }
-
 function show_image(network) {
-  d3.select("#tpContainer").selectAll("svg").remove();
-  console.log("show image");
+  const containerId = "#tpContainer";
+  const widthOfSVG = 960;
+  const heightOfSVG = 500;
+  const widthOfNodeIcon = 30;
+  const heightOfNodeIcon = 30;
+  const nodeIconURL =
+    "https://cdn0.iconfinder.com/data/icons/industrial-circle/512/Electricity_supply_network-512.png";
+  const generatorIconURL =
+    "https://f0.pngfuel.com/png/950/932/electric-generator-diesel-generator-engine-generator-electricity-alternator-business-png-clip-art.png";
+  const loadIconURL =
+    "https://library.kissclipart.com/20180830/xrq/kissclipart-electric-logo-png-clipart-electricity-electrical-e-bd404f699a04486b.jpg";
+  const iconsArr = {
+    "0": nodeIconURL,
+    "1": loadIconURL,
+    "2": generatorIconURL,
+  };
 
-  var width = 960,
-    height = 500;
-
-  var color = d3.scale.category20();
-
-  var force = d3.layout
-    .force()
-    .charge(-120)
-    .linkDistance(30)
-    .size([width, height]);
-
-  // var svg = d3
-  //   .select("#tpContainer")
-  //   .append("svg")
-  //   .attr("width", width)
-  //   .attr("height", height);
-  var svg = d3
-    .select("#tpContainer")
-    .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .style("pointer-events", "all");
-
-  var graph = svg.append("g").attr("class", "graph");
-
-  var size_of_nodes = network.nodes.length;
-  console.log(size_of_nodes);
-  var my_nodes = $.map(network.nodes, function (d) {
-    return { name: d.index, type: d.type };
+  let myNodes = $.map(network.nodes, function (d) {
+    return {
+      name: d.index,
+      type: d.type,
+    };
   });
-  var my_lines = $.map(network.lines, function (d) {
+  let myLines = $.map(network.lines, function (d) {
     return {
       source: d.from_bus,
       target: d.to_bus,
@@ -81,69 +48,55 @@ function show_image(network) {
     };
   });
 
-  console.log(my_nodes);
-  console.log(my_lines);
+  // remove old image
+  d3.select(containerId).selectAll("svg").remove();
 
-  force.nodes(my_nodes).links(my_lines).start();
+  console.log("show image");
 
-  // var link = graph
-  //   .selectAll(".link")
-  //   .data(my_links)
-  //   .enter()
-  //   .append("line")
-  //   .attr("class", "link")
-  //   .style("stroke", "black")
-  //   .style("stroke-width", 1);
+  var color = d3.scale.category20();
+
+  let force = d3.layout
+    .force()
+    .charge(-120)
+    .linkDistance(30)
+    .size([widthOfSVG, heightOfSVG]);
+
+  let svg = d3
+    .select(containerId)
+    .append("svg")
+    .attr("width", widthOfSVG)
+    .attr("height", heightOfSVG)
+    .style("pointer-events", "all");
+
+  let graph = svg.append("g").attr("class", "graph");
+
+  console.log(myNodes);
+  console.log(myLines);
+
+  force.nodes(myNodes).links(myLines).start();
 
   var lines = graph
     .selectAll("line.line")
-    .data(my_lines)
+    .data(myLines)
     .enter()
     .append("g")
     .attr("class", "line");
 
   lines.append("line").style("stroke", "black").style("stroke-width", 2);
 
-  // var node = graph
-  //   .selectAll(".node")
-  //   .data(my_nodes)
-  //   .enter()
-  //   .append("circle")
-  //   .attr("class", "node")
-  //   .attr("r", 5)
-  //   .style("fill", function (d) {
-  //     if (d.type == 0) {
-  //       return "blue";
-  //     } else if (d.type == 1) {
-  //       return "yellow";
-  //     } else {
-  //       return "red";
-  //     }
-  //   })
-  //   .call(force.drag);
-
-  var icons = {
-    "0":
-      "https://cdn0.iconfinder.com/data/icons/industrial-circle/512/Electricity_supply_network-512.png",
-    "1":
-      "https://library.kissclipart.com/20180830/xrq/kissclipart-electric-logo-png-clipart-electricity-electrical-e-bd404f699a04486b.jpg",
-    "2":
-      "https://f0.pngfuel.com/png/950/932/electric-generator-diesel-generator-engine-generator-electricity-alternator-business-png-clip-art.png",
-  };
-
   var node = graph
     .selectAll("g.node")
-    .data(my_nodes)
+    .data(myNodes)
     .enter()
     .append("g")
     .attr("class", "node");
 
   node
     .append("image")
-    .attr("width", 40)
-    .attr("height", 40)
+    .attr("width", widthOfNodeIcon)
+    .attr("height", heightOfNodeIcon)
     .attr("href", function (d) {
-      return icons[d.type];
+      return iconsArr[d.type];
     });
 
   force.on("tick", function () {
@@ -174,23 +127,32 @@ function show_image(network) {
   node
     .on("mouseenter", function (d) {
       d3.select(this).style("cursor", "pointer");
-
-      $("#tpContainer").append(createInfoTip(d));
-      $(".node-info")
-        .css({
-          left: d3.event.x + 20,
-          top: d3.event.y + 20,
-        })
-        .show();
+      $(containerId).append(createNodeInfoHtml(d));
+      showNodeInfo();
       console.log("mouseenter");
     })
     .on("mouseleave", function () {
-      $(".node-info").remove();
+      hideNodeInfo();
       console.log("mouseleave");
     });
 }
 
-function createInfoTip(node) {
+function showNodeInfo() {
+  $(".node-info")
+    .css({
+      left: d3.event.x + 20,
+      top: d3.event.y + 20,
+    })
+    .show();
+  console.log("showNodeInfo");
+}
+
+function hideNodeInfo() {
+  $(".node-info").remove();
+  console.log("hideNodeInfo");
+}
+
+function createNodeInfoHtml(node) {
   let type = "bus";
   if (node.type == 1) {
     type = "generator";
@@ -198,7 +160,8 @@ function createInfoTip(node) {
   if (node.type == 2) {
     type = "load";
   }
-  var html = "<div class='node-info'><ul><span class='info-title'>Info:</span>";
+
+  let html = "<div class='node-info'><ul><span class='info-title'>Info:</span>";
   html += "<li><span class='info-content'>index=" + node.index + "</span>";
   html += "<li><span class='info-content'>type=" + type + "</span></li>";
   html += "</ul></div>";
