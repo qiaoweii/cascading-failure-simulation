@@ -1,6 +1,6 @@
 init();
 
-document.getElementById("animation").onclick = function () {
+document.getElementById("play-button").onclick = function () {
   init();
 };
 
@@ -17,7 +17,7 @@ function load_data() {
 
 function show_image(network) {
   const containerId = "#tpContainer";
-  const widthOfSVG = 960;
+  const widthOfSVG = 500;
   const heightOfSVG = 500;
   const widthOfNodeIcon = 30;
   const heightOfNodeIcon = 30;
@@ -118,8 +118,8 @@ function show_image(network) {
 
     node.attr("transform", function (d) {
       var image = d3.select(this).select("image")[0][0],
-        halfWidth = parseFloat(70) / 2,
-        halfHeight = parseFloat(70) / 2;
+        halfWidth = parseFloat(50) / 2,
+        halfHeight = parseFloat(50) / 2;
 
       return "translate(" + (d.x - halfWidth) + "," + (d.y - halfHeight) + ")";
     });
