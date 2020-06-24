@@ -4,9 +4,12 @@ from flask_cors import CORS
 
 # configuration
 DEBUG = True
+# TESTING = True
 
 # instantiate the app
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__,
+            static_folder='static',
+            template_folder='templates')
 app.config.from_object(__name__)
 
 # enable CORS
@@ -27,4 +30,4 @@ def get_data():
 
 
 if __name__ == '__main__':
-    app.run(port=5501)
+    app.run()

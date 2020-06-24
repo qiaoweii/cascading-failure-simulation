@@ -4,3 +4,5 @@ package-lock.json
 node_modules
 .vscode
 __pycache__
+bundle.js
+yarn.lock
