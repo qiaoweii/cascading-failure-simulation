@@ -50,3 +50,12 @@
   cursor: pointer;
   height: 30px;
 }
+
+#tpContainer {
+  position: absolute;
+  top: 35%;
+  margin-left: auto;
+  margin-right: auto;
+  height: 500px;
+  width: 500px;
+}

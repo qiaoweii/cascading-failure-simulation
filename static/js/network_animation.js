@@ -1,214 +1,177 @@
 import * as d3 from "d3";
 import * as axios from "axios";
-import "./css/style.css";
+import "../css/style.css";
 
-d3.select("body").append("p").html("hello world");
+init();
 
-axios
-  .get("/get_data")
-  .then((response) => console.log(response.data))
-  .catch((error) => console.log(error.response));
+document.getElementById("play-button").onclick = function () {
+  init();
+};
 
-// init();
+function init() {
+  load_data();
+}
 
-// document.getElementById("play-button").onclick = function () {
-//   init();
-// };
+function load_data() {
+  let flaskPort = 5000;
+  axios
+    .get(`http://localhost:${flaskPort}/get_data`)
+    .then((response) => show_image(response.data))
+    .catch((error) => console.log(error.response));
+}
 
-// function init() {
-//   load_data();
-// }
+function show_image(network) {
+  const containerId = "#tpContainer";
+  const widthOfSVG = 400;
+  const heightOfSVG = 400;
+  const widthOfNodeIcon = 3;
+  const heightOfNodeIcon = 3;
+  const nodeIconURL =
+    "https://cdn3.iconfinder.com/data/icons/circuit-and-pipe/128/CircuitPipe-01-512.png";
+  const generatorIconURL =
+    "https://f0.pngfuel.com/png/950/932/electric-generator-diesel-generator-engine-generator-electricity-alternator-business-png-clip-art.png";
+  const loadIconURL =
+    "https://icon2.cleanpng.com/20180420/rqw/kisspng-electricity-distribution-board-electrical-wires-electrician-tools-5ad9a315a376a5.9023939015242125016696.jpg";
+  const iconsArr = {
+    "0": nodeIconURL,
+    "1": loadIconURL,
+    "2": generatorIconURL,
+  };
 
-// function load_data() {
-//   axios
-//     .get("/get_data")
-//     .then((response) => show_image(response.data))
-//     .catch((error) => console.log(error.response));
-// }
+  console.log(network.lines);
+  console.log(network.nodes);
 
-// function show_image(network) {
-//   console.log(network);
-// }
+  let myNodes = $.map(network.nodes, function (d) {
+    return {
+      name: d.index,
+      type: d.type,
+    };
+  });
 
-// function show_image(network) {
-//   const containerId = "#tpContainer";
-//   const widthOfSVG = 500;
-//   const heightOfSVG = 500;
-//   const widthOfNodeIcon = 30;
-//   const heightOfNodeIcon = 30;
-//   const nodeIconURL =
-//     "https://cdn0.iconfinder.com/data/icons/industrial-circle/512/Electricity_supply_network-512.png";
-//   const generatorIconURL =
-//     "https://f0.pngfuel.com/png/950/932/electric-generator-diesel-generator-engine-generator-electricity-alternator-business-png-clip-art.png";
-//   const loadIconURL =
-//     "https://library.kissclipart.com/20180830/xrq/kissclipart-electric-logo-png-clipart-electricity-electrical-e-bd404f699a04486b.jpg";
-//   const iconsArr = {
-//     "0": nodeIconURL,
-//     "1": loadIconURL,
-//     "2": generatorIconURL,
-//   };
+  let myLines = $.map(network.lines, function (d) {
+    return {
+      source: d.source,
+      target: d.target,
+      value: d.value,
+      origin: d,
+    };
+  });
 
-//   let myNodes = $.map(network.nodes, function (d) {
-//     return {
-//       name: d.index,
-//       type: d.type,
-//     };
-//   });
-//   let myLines = $.map(network.lines, function (d) {
-//     return {
-//       source: d.from_bus,
-//       target: d.to_bus,
-//       value: d.length_km,
-//       origin: d,
-//     };
-//   });
+  var simulation = d3
+    .forceSimulation(myNodes)
+    .force("link", d3.forceLink().links(myLines))
+    .force("charge", d3.forceManyBody())
+    .force("center", d3.forceCenter(widthOfSVG / 2, heightOfSVG / 2));
 
-//   // remove old image
-//   d3.select(containerId).selectAll("svg").remove();
+  const svg = d3
+    .select(containerId)
+    .append("svg")
+    .attr("viewBox", [6, 10, 35, 35]);
 
-//   console.log("show image");
+  const link = svg
+    .append("g")
+    // .attr("stroke-opacity", 0.6)
+    .selectAll("line")
+    .data(myLines)
+    .join("line")
+    .attr("stroke-width", 0.1)
+    .attr("stroke", "black");
 
-//   let svg = d3
-//     .select(containerId)
-//     .append("svg")
-//     .attr("width", widthOfSVG)
-//     .attr("height", heightOfSVG)
-//     .style("pointer-events", "all");
+  console.log(link);
 
-//   let graph = svg.append("g").attr("class", "graph");
+  const node = svg
+    .append("g")
+    .attr("class", "nodes")
+    .selectAll("images")
+    .data(myNodes)
+    .enter()
+    .append("image")
+    .attr("href", function (d) {
+      return iconsArr[d.type];
+    })
+    .attr("width", widthOfNodeIcon)
+    .attr("height", heightOfNodeIcon);
 
-//   console.log(myNodes);
-//   console.log(myLines);
+  console.log(node);
 
-//   let force = d3.layout
-//     .force()
-//     .nodes(myNodes)
-//     .links(myLines)
-//     .size([widthOfSVG, heightOfSVG])
-//     .linkDistance(60)
-//     .charge(-700)
-//     .start();
+  simulation.on("tick", () => {
+    link
+      .attr("x1", (d) => d.source.x / 10)
+      .attr("y1", (d) => d.source.y / 10)
+      .attr("x2", (d) => d.target.x / 10)
+      .attr("y2", (d) => d.target.y / 10);
 
-//   var lines = graph
-//     .selectAll("line.line")
-//     .data(myLines)
-//     .enter()
-//     .append("g")
-//     .attr("class", "line");
+    node.attr("transform", function (d) {
+      return "translate(" + (d.x / 10 - 1.5) + "," + (d.y / 10 - 1.3) + ")";
+    });
+  });
 
-//   lines.append("line").style("stroke", "black").style("stroke-width", 2);
+  node
+    .on("mouseenter", function (d) {
+      d3.select(this).style("cursor", "pointer");
 
-//   var node = graph
-//     .selectAll("g.node")
-//     .data(myNodes)
-//     .enter()
-//     .append("g")
-//     .attr("class", "node");
+      d3.select(containerId)
+        .append("div")
+        .attr("class", "node-info")
+        .html(getNodeInfoHtml(d));
+      showNodeInfo();
+      console.log("mouseenter");
+    })
+    .on("mouseleave", function () {
+      hideNodeInfo();
+      console.log("mouseleave");
+    });
 
-//   node
-//     .append("image")
-//     .attr("width", widthOfNodeIcon)
-//     .attr("height", heightOfNodeIcon)
-//     .attr("href", function (d) {
-//       return iconsArr[d.type];
-//     });
+  node.call(
+    d3
+      .drag()
+      .on("start", function (d) {
+        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+      })
+      .on("drag", function (d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+      })
+      .on("end", function (d) {
+        if (!d3.event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+      })
+  );
+}
 
-//   node.call(getDragBehavior(force));
+function showNodeInfo() {
+  $(".node-info")
+    .css({
+      left: d3.event.x - 330,
+      top: d3.event.y - 280,
+    })
+    .show();
+  console.log("showNodeInfo");
+}
 
-//   force.on("tick", function () {
-//     lines
-//       .select("line")
-//       .attr("x1", function (d) {
-//         return d.source.x;
-//       })
-//       .attr("y1", function (d) {
-//         return d.source.y;
-//       })
-//       .attr("x2", function (d) {
-//         return d.target.x;
-//       })
-//       .attr("y2", function (d) {
-//         return d.target.y;
-//       });
+function hideNodeInfo() {
+  $(".node-info").remove();
+  console.log("hideNodeInfo");
+}
 
-//     node.attr("transform", function (d) {
-//       var image = d3.select(this).select("image")[0][0],
-//         halfWidth = parseFloat(50) / 2,
-//         halfHeight = parseFloat(50) / 2;
+function getNodeInfoHtml(node) {
+  let nodeType = "bus";
 
-//       return "translate(" + (d.x - halfWidth) + "," + (d.y - halfHeight) + ")";
-//     });
-//   });
+  if (node.type == 1) {
+    nodeType = "generator";
+  }
+  if (node.type == 2) {
+    nodeType = "load";
+  }
 
-//   node
-//     .on("mouseenter", function (d) {
-//       d3.select(this).style("cursor", "pointer");
-//       $(containerId).append(createNodeInfoHtml(d));
-//       showNodeInfo();
-//       console.log("mouseenter");
-//     })
-//     .on("mouseleave", function () {
-//       hideNodeInfo();
-//       console.log("mouseleave");
-//     });
-// }
+  let nodeInfoHtml = "<ul><span class='info-title'>Info:</span>";
+  nodeInfoHtml +=
+    "<li><span class='info-content'>index=" + node.index + "</span>";
+  nodeInfoHtml +=
+    "<li><span class='info-content'>type=" + nodeType + "</span></li></ul>";
 
-// function showNodeInfo() {
-//   $(".node-info")
-//     .css({
-//       left: d3.event.x + 20,
-//       top: d3.event.y + 20,
-//     })
-//     .show();
-//   console.log("showNodeInfo");
-// }
-
-// function hideNodeInfo() {
-//   $(".node-info").remove();
-//   console.log("hideNodeInfo");
-// }
-
-// function createNodeInfoHtml(node) {
-//   let type = "bus";
-//   if (node.type == 1) {
-//     type = "generator";
-//   }
-//   if (node.type == 2) {
-//     type = "load";
-//   }
-
-//   let html = "<div class='node-info'><ul><span class='info-title'>Info:</span>";
-//   html += "<li><span class='info-content'>index=" + node.index + "</span>";
-//   html += "<li><span class='info-content'>type=" + type + "</span></li>";
-//   html += "</ul></div>";
-
-//   console.log(node.index);
-//   console.log(node.type);
-//   return html;
-// }
-
-// function getDragBehavior(force) {
-//   return d3.behavior
-//     .drag()
-//     .origin(function (d) {
-//       return d;
-//     })
-//     .on("dragstart", dragstart)
-//     .on("drag", dragging)
-//     .on("dragend", dragend);
-
-//   function dragstart(d) {
-//     d3.event.sourceEvent.stopPropagation();
-//     d3.select(this).classed("dragging", true);
-//     force.start();
-//   }
-
-//   function dragging(d) {
-//     d.x = d3.event.x;
-//     d.y = d3.event.y;
-//   }
-
-//   function dragend(d) {
-//     d3.select(this).classed("dragging", false);
-//   }
-// }
+  return nodeInfoHtml;
+}

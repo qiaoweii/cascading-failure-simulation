@@ -23,7 +23,7 @@ def get_buses_data(net):
             bus_type = "1"
         if i in loads:
             bus_type = "2"
-        data = {"index": int(i), "type": str(bus_type)}
+        data = {"id": str(int(i)), "type": str(bus_type)}
         all_bus_data.append(data)
 
     return all_bus_data
@@ -33,8 +33,8 @@ def get_lines_data(net):
     all_line_data = []
     for i in net.line.index:
         l = net.line[net.line.index == i]
-        data = {"index": int(i), "from_bus": int(l.from_bus), "to_bus": int(
-            l.to_bus), "length_km": float(l.length_km)}
+        data = {"source": str(int(l.from_bus)), "target": str(int(
+            l.to_bus)), "value": float(l.length_km)}
         all_line_data.append(data)
     return all_line_data
 
