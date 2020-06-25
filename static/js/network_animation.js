@@ -1,31 +1,148 @@
 import * as d3 from "d3";
 import * as axios from "axios";
 import "../css/style.css";
+import * as network from "../data/network.json";
 
-init();
+var startRound = 0;
+var endRound = 9;
+var dataset = load_data();
+var margin = { top: 50, right: 50, bottom: 0, left: 50 };
+var width = 960 - margin.left - margin.right;
+var height = 500 - margin.top - margin.bottom;
+var moving = false;
+var currentValue = 0;
+var targetValue = width;
+var timer = 0;
+var playButton = d3.select("#play-button");
 
-document.getElementById("play-button").onclick = function () {
-  init();
-};
-
-function init() {
-  load_data();
-}
-
+// Init dataset.
 function load_data() {
-  let flaskPort = 5000;
-  axios
-    .get(`http://localhost:${flaskPort}/get_data`)
-    .then((response) => show_image(response.data))
-    .catch((error) => console.log(error.response));
+  // Import data by Flask.
+  // let flaskPort = 5000;
+  // axios
+  //   .get(`http://localhost:${flaskPort}/get_data`)
+  //   .then((response) => show_image(response.data))
+  //   .catch((error) => console.log(error.response));
+
+  //Import data by JSON
+  console.log(network.default);
+  var networkData = network.default;
+  return networkData;
 }
 
-function show_image(network) {
-  const containerId = "#tpContainer";
+var svg = d3
+  .select("#container")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom);
+
+// Build Scale
+var x = d3
+  .scaleLinear()
+  .domain([startRound, endRound])
+  .range([0, targetValue])
+  .clamp(true);
+
+// Build Slider
+var slider = svg
+  .append("g")
+  .attr("class", "slider")
+  .attr("transform", "translate(" + margin.left + "," + height / 5 + ")");
+
+slider
+  .append("line")
+  .attr("class", "track")
+  .attr("x1", x.range()[0])
+  .attr("x2", x.range()[1])
+  .select(function () {
+    return this.parentNode.appendChild(this.cloneNode(true));
+  })
+  .attr("class", "track-inset")
+  .select(function () {
+    return this.parentNode.appendChild(this.cloneNode(true));
+  })
+  .attr("class", "track-overlay")
+  .call(
+    d3
+      .drag()
+      .on("start.interrupt", function () {
+        slider.interrupt();
+      })
+      .on("start drag", function () {
+        currentValue = d3.event.x;
+        update(x.invert(currentValue));
+      })
+  );
+
+slider
+  .insert("g", ".track-overlay")
+  .attr("class", "ticks")
+  .attr("transform", "translate(0," + 18 + ")")
+  .selectAll("text")
+  .data(x.ticks(10))
+  .enter()
+  .append("text")
+  .attr("x", x)
+  .attr("y", 10)
+  .attr("text-anchor", "middle")
+  .text(function (d) {
+    return parseInt(d);
+  });
+
+// Build handle with label upon it.
+var handle = slider
+  .insert("circle", ".track-overlay")
+  .attr("class", "handle")
+  .attr("r", 9);
+
+var label = slider
+  .append("text")
+  .attr("class", "label")
+  .attr("text-anchor", "mid")
+  .text(startRound)
+  .attr("transform", "translate(0," + -25 + ")");
+
+// Build space to draw plot.
+var plot = svg
+  .append("g")
+  .attr("class", "plot")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// Function about play-button.
+playButton.on("click", function () {
+  var button = d3.select(this);
+  if (button.text() == "Pause") {
+    moving = false;
+    clearInterval(timer);
+    button.text("Play");
+  } else {
+    moving = true;
+    timer = setInterval(step, 100);
+    button.text("Pause");
+  }
+  console.log("Slider moving: " + moving);
+});
+
+function step() {
+  update(x.invert(currentValue));
+  currentValue = currentValue + targetValue / 151;
+
+  //Case: the handle is at the end of the slider.
+  if (currentValue > targetValue) {
+    moving = false;
+    currentValue = 0;
+    clearInterval(timer);
+    playButton.text("Play");
+    console.log("Slider moving: " + moving);
+  }
+}
+
+function drawPlot(network) {
+  const containerId = "#container";
   const widthOfSVG = 400;
   const heightOfSVG = 400;
-  const widthOfNodeIcon = 3;
-  const heightOfNodeIcon = 3;
+  const widthOfNodeIcon = 25;
+  const heightOfNodeIcon = 25;
   const nodeIconURL =
     "https://cdn3.iconfinder.com/data/icons/circuit-and-pipe/128/CircuitPipe-01-512.png";
   const generatorIconURL =
@@ -41,6 +158,11 @@ function show_image(network) {
   console.log(network.lines);
   console.log(network.nodes);
 
+  // Remove old plot.
+  d3.select(".plot").selectAll(".nodes").remove();
+  d3.select(".plot").selectAll(".lines").remove();
+
+  // Format network data.
   let myNodes = $.map(network.nodes, function (d) {
     return {
       name: d.index,
@@ -63,23 +185,19 @@ function show_image(network) {
     .force("charge", d3.forceManyBody())
     .force("center", d3.forceCenter(widthOfSVG / 2, heightOfSVG / 2));
 
-  const svg = d3
-    .select(containerId)
-    .append("svg")
-    .attr("viewBox", [6, 10, 35, 35]);
-
-  const link = svg
+  const link = plot
     .append("g")
-    // .attr("stroke-opacity", 0.6)
+    .attr("class", "lines")
+    .attr("stroke-opacity", 0.6)
     .selectAll("line")
     .data(myLines)
     .join("line")
-    .attr("stroke-width", 0.1)
+    .attr("stroke-width", 1)
     .attr("stroke", "black");
 
   console.log(link);
 
-  const node = svg
+  const node = plot
     .append("g")
     .attr("class", "nodes")
     .selectAll("images")
@@ -96,16 +214,17 @@ function show_image(network) {
 
   simulation.on("tick", () => {
     link
-      .attr("x1", (d) => d.source.x / 10)
-      .attr("y1", (d) => d.source.y / 10)
-      .attr("x2", (d) => d.target.x / 10)
-      .attr("y2", (d) => d.target.y / 10);
+      .attr("x1", (d) => d.source.x)
+      .attr("y1", (d) => d.source.y)
+      .attr("x2", (d) => d.target.x)
+      .attr("y2", (d) => d.target.y);
 
     node.attr("transform", function (d) {
-      return "translate(" + (d.x / 10 - 1.5) + "," + (d.y / 10 - 1.3) + ")";
+      return "translate(" + d.x + "," + d.y + ")";
     });
   });
 
+  // Add hover action to show node info.
   node
     .on("mouseenter", function (d) {
       d3.select(this).style("cursor", "pointer");
@@ -122,6 +241,7 @@ function show_image(network) {
       console.log("mouseleave");
     });
 
+  // Add drag action.
   node.call(
     d3
       .drag()
@@ -142,11 +262,28 @@ function show_image(network) {
   );
 }
 
+function update(h) {
+  console.log("update");
+  console.log(h);
+  console.log(Math.round(x(h)));
+
+  // Update position and text of label according to slider scale.
+  handle.attr("cx", x(h));
+  var curIdx = Math.round(x(h) / 100);
+  label.attr("x", x(h)).text(curIdx);
+
+  // Update data of network.
+  var newData = dataset.filter(function (d) {
+    return d.id === curIdx;
+  });
+  drawPlot(newData[0]);
+}
+
 function showNodeInfo() {
   $(".node-info")
     .css({
-      left: d3.event.x - 330,
-      top: d3.event.y - 280,
+      left: d3.event.x + 10,
+      top: d3.event.y + 10,
     })
     .show();
   console.log("showNodeInfo");
