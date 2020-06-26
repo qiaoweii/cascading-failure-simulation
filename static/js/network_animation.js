@@ -106,7 +106,8 @@ var label = slider
 var plot = svg
   .append("g")
   .attr("class", "plot")
-  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  // .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  .attr("transform", "translate( 250, 100 )");
 
 // Function about play-button.
 playButton.on("click", function () {
@@ -182,7 +183,8 @@ function drawPlot(network) {
   var simulation = d3
     .forceSimulation(myNodes)
     .force("link", d3.forceLink().links(myLines))
-    .force("charge", d3.forceManyBody())
+    // .force("charge", d3.forceManyBody()) set the length of lines
+    .force("charge", d3.forceCollide().radius(50))
     .force("center", d3.forceCenter(widthOfSVG / 2, heightOfSVG / 2));
 
   const link = plot
@@ -220,7 +222,7 @@ function drawPlot(network) {
       .attr("y2", (d) => d.target.y);
 
     node.attr("transform", function (d) {
-      return "translate(" + d.x + "," + d.y + ")";
+      return "translate(" + (d.x - 8) + "," + (d.y - 8) + ")";
     });
   });
 
@@ -268,13 +270,30 @@ function update(h) {
   console.log(Math.round(x(h)));
 
   // Update position and text of label according to slider scale.
-  handle.attr("cx", x(h));
-  var curIdx = Math.round(x(h) / 100);
-  label.attr("x", x(h)).text(curIdx);
+  var startPoint = 0;
+  for (let i = 0; i < endRound; i++) {
+    if (h >= i && h <= i + 1) {
+      startPoint = i;
+      break;
+    }
+  }
+
+  var endPoint = startPoint + 1;
+  var midPoint = (startPoint + endPoint) / 2;
+  var curIndex = 0;
+  if (h < midPoint) {
+    curIndex = startPoint;
+  } else {
+    curIndex = endPoint;
+  }
+  var cx = x(curIndex);
+
+  handle.attr("cx", cx);
+  label.attr("x", cx).text(curIndex);
 
   // Update data of network.
   var newData = dataset.filter(function (d) {
-    return d.id === curIdx;
+    return d.id === curIndex;
   });
   drawPlot(newData[0]);
 }
