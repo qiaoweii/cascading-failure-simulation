@@ -120,7 +120,7 @@ playButton.on("click", function () {
     button.text("Play");
   } else {
     moving = true;
-    timer = setInterval(step, 100);
+    timer = setInterval(step, 50);
     button.text("Pause");
   }
   console.log("Slider moving: " + moving);
@@ -289,8 +289,7 @@ function update(h) {
     return d.id === curIndex;
   });
   var curData = curDataset[0];
-  var linesToRemove = getDeprecatedLines(preData, curData);
-  removeLines(linesToRemove);
+  addOrRemoveLines(preData, curData);
   preData = curData;
 }
 
@@ -336,7 +335,7 @@ function getLineInfoHtml(line) {
   return lineInfoHtml;
 }
 
-function getDeprecatedLines(oldData, newData) {
+function addOrRemoveLines(oldData, newData) {
   var result = [];
 
   // Case 1 : `OldData` is null/ empty/ does not have lines, then draw new plot.
@@ -359,7 +358,7 @@ function getDeprecatedLines(oldData, newData) {
     oldData.lines.forEach(function (item) {
       result.push(item.id);
     });
-    return result;
+    removeLines(result);
 
     // Case3 : Both `oldData` and `newData` has lines, then compare their lines.
   } else {
@@ -368,8 +367,8 @@ function getDeprecatedLines(oldData, newData) {
 
     // If the count of lines is equal, no lines need to be removed.
     if (oldLines.length === newLines.length) {
-      return result;
-    } else {
+      return;
+    } else if (oldLines.length > newLines.length) {
       let newLinesSet = new Set();
 
       newLines.forEach(function (item) {
@@ -382,7 +381,9 @@ function getDeprecatedLines(oldData, newData) {
         }
       });
       console.log(result);
-      return result;
+      removeLines(result);
+    } else {
+      drawPlot(newData);
     }
   }
 }
@@ -396,3 +397,8 @@ function removeLines(rlines) {
     $("#" + item).remove();
   });
 }
+
+d3.select("#network-data-select").on("change", function (d) {
+  var selected = d3.select("#network-data-select").node().value;
+  console.log(selected);
+});

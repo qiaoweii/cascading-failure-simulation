@@ -77,3 +77,19 @@ body {
   color: #fff;
   font-size: 12px;
 }
+
+#network-data-select {
+  top: 140px;
+  left: 130px;
+  position: absolute;
+  background: darkgray;
+  padding-right: 26px;
+  border-radius: 3px;
+  border: none;
+  color: white;
+  margin: 0;
+  padding: 0 12px;
+  width: 95px;
+  cursor: pointer;
+  height: 30px;
+}
