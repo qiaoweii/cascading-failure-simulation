@@ -144,16 +144,15 @@ function drawPlot(network) {
   const heightOfSVG = 400;
   const widthOfNodeIcon = 25;
   const heightOfNodeIcon = 25;
-  const nodeIconURL =
-    "https://cdn3.iconfinder.com/data/icons/circuit-and-pipe/128/CircuitPipe-01-512.png";
+  const nodeIconURL = "https://image.flaticon.com/icons/svg/2991/2991034.svg";
   const generatorIconURL =
-    "https://f0.pngfuel.com/png/950/932/electric-generator-diesel-generator-engine-generator-electricity-alternator-business-png-clip-art.png";
+    "https://image.flaticon.com/icons/svg/3118/3118212.svg";
   const loadIconURL =
-    "https://icon2.cleanpng.com/20180420/rqw/kisspng-electricity-distribution-board-electrical-wires-electrician-tools-5ad9a315a376a5.9023939015242125016696.jpg";
+    "https://cdn3.iconfinder.com/data/icons/electricity-wires-and-cables-elasto-font-next-2020/18/06_electric-box-512.png";
   const iconsArr = {
     "0": nodeIconURL,
-    "1": loadIconURL,
-    "2": generatorIconURL,
+    "1": generatorIconURL,
+    "2": loadIconURL,
   };
 
   console.log(network.lines);
@@ -166,7 +165,7 @@ function drawPlot(network) {
   // Format network data.
   let myNodes = $.map(network.nodes, function (d) {
     return {
-      name: d.index,
+      name: d.id,
       type: d.type,
     };
   });
@@ -184,8 +183,8 @@ function drawPlot(network) {
     .forceSimulation(myNodes)
     .force("link", d3.forceLink().links(myLines))
     // .force("charge", d3.forceManyBody()) set the length of lines
-    .force("charge", d3.forceCollide().radius(50))
-    .force("center", d3.forceCenter(widthOfSVG / 2, heightOfSVG / 2));
+    .force("charge", d3.forceCollide().radius(30))
+    .force("center", d3.forceCenter(widthOfSVG / 2 + 40, heightOfSVG / 2 + 40));
 
   const link = plot
     .append("g")
@@ -233,13 +232,28 @@ function drawPlot(network) {
 
       d3.select(containerId)
         .append("div")
-        .attr("class", "node-info")
+        .attr("class", "info")
         .html(getNodeInfoHtml(d));
-      showNodeInfo();
+      showInfo();
       console.log("mouseenter");
     })
     .on("mouseleave", function () {
-      hideNodeInfo();
+      hideInfo();
+      console.log("mouseleave");
+    });
+
+  link
+    .on("mouseenter", function (d) {
+      d3.select(this).style("cursor", "pointer");
+
+      d3.select(containerId)
+        .append("div")
+        .attr("class", "info")
+        .html(getLineInfoHtml(d));
+      showInfo();
+    })
+    .on("mouseleave", function () {
+      hideInfo();
       console.log("mouseleave");
     });
 
@@ -270,22 +284,7 @@ function update(h) {
   console.log(Math.round(x(h)));
 
   // Update position and text of label according to slider scale.
-  var startPoint = 0;
-  for (let i = 0; i < endRound; i++) {
-    if (h >= i && h <= i + 1) {
-      startPoint = i;
-      break;
-    }
-  }
-
-  var endPoint = startPoint + 1;
-  var midPoint = (startPoint + endPoint) / 2;
-  var curIndex = 0;
-  if (h < midPoint) {
-    curIndex = startPoint;
-  } else {
-    curIndex = endPoint;
-  }
+  var curIndex = Math.round(h);
   var cx = x(curIndex);
 
   handle.attr("cx", cx);
@@ -298,8 +297,8 @@ function update(h) {
   drawPlot(newData[0]);
 }
 
-function showNodeInfo() {
-  $(".node-info")
+function showInfo() {
+  $(".info")
     .css({
       left: d3.event.x + 10,
       top: d3.event.y + 10,
@@ -308,8 +307,8 @@ function showNodeInfo() {
   console.log("showNodeInfo");
 }
 
-function hideNodeInfo() {
-  $(".node-info").remove();
+function hideInfo() {
+  $(".info").remove();
   console.log("hideNodeInfo");
 }
 
@@ -330,4 +329,15 @@ function getNodeInfoHtml(node) {
     "<li><span class='info-content'>type=" + nodeType + "</span></li></ul>";
 
   return nodeInfoHtml;
+}
+
+function getLineInfoHtml(line) {
+  let lineInfoHtml = "<ul><span class='info-title'>Info:</span>";
+  lineInfoHtml +=
+    "<li><span class='info-content'>index=" + line.source.name + "</span></li>";
+  lineInfoHtml +=
+    "<li><span class='info-content'>index=" + line.target.name + "</span></li>";
+  lineInfoHtml +=
+    "<li><span class='info-content'>type=" + line.value + "</span></li></ul>";
+  return lineInfoHtml;
 }

@@ -63,14 +63,14 @@ body {
   stroke-width: 1.25px;
 }
 
-.node-info {
+.info {
   position: absolute;
   display: none;
   border-radius: 0.5em;
   background: #555;
 }
 
-.node-info ul {
+.info ul {
   margin: 0;
   padding: 0.5em;
   list-style: none;
