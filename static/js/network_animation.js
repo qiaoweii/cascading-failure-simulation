@@ -6,6 +6,7 @@ import * as network from "../data/network.json";
 var startRound = 0;
 var endRound = 9;
 var dataset = load_data();
+var preData = [];
 var margin = { top: 50, right: 50, bottom: 0, left: 50 };
 var width = 960 - margin.left - margin.right;
 var height = 500 - margin.top - margin.bottom;
@@ -172,10 +173,10 @@ function drawPlot(network) {
 
   let myLines = $.map(network.lines, function (d) {
     return {
+      id: d.id,
       source: d.source,
       target: d.target,
       value: d.value,
-      origin: d,
     };
   });
 
@@ -193,10 +194,11 @@ function drawPlot(network) {
     .selectAll("line")
     .data(myLines)
     .join("line")
+    .attr("id", function (d) {
+      return d.id;
+    })
     .attr("stroke-width", 1)
     .attr("stroke", "black");
-
-  console.log(link);
 
   const node = plot
     .append("g")
@@ -210,8 +212,6 @@ function drawPlot(network) {
     })
     .attr("width", widthOfNodeIcon)
     .attr("height", heightOfNodeIcon);
-
-  console.log(node);
 
   simulation.on("tick", () => {
     link
@@ -235,11 +235,9 @@ function drawPlot(network) {
         .attr("class", "info")
         .html(getNodeInfoHtml(d));
       showInfo();
-      console.log("mouseenter");
     })
     .on("mouseleave", function () {
       hideInfo();
-      console.log("mouseleave");
     });
 
   link
@@ -254,7 +252,6 @@ function drawPlot(network) {
     })
     .on("mouseleave", function () {
       hideInfo();
-      console.log("mouseleave");
     });
 
   // Add drag action.
@@ -279,10 +276,6 @@ function drawPlot(network) {
 }
 
 function update(h) {
-  console.log("update");
-  console.log(h);
-  console.log(Math.round(x(h)));
-
   // Update position and text of label according to slider scale.
   var curIndex = Math.round(h);
   var cx = x(curIndex);
@@ -291,10 +284,20 @@ function update(h) {
   label.attr("x", cx).text(curIndex);
 
   // Update data of network.
-  var newData = dataset.filter(function (d) {
+  var curData = dataset.filter(function (d) {
     return d.id === curIndex;
   });
-  drawPlot(newData[0]);
+  console.log(preData);
+  console.log(curData);
+  console.log(curIndex);
+  if (curIndex === 0) {
+    drawPlot(curData[0]);
+  } else {
+    console.log("remove diff");
+    var linesToRemove = getDeprecatedLines(preData, curData);
+    removeLines(linesToRemove);
+  }
+  preData = curData;
 }
 
 function showInfo() {
@@ -304,12 +307,10 @@ function showInfo() {
       top: d3.event.y + 10,
     })
     .show();
-  console.log("showNodeInfo");
 }
 
 function hideInfo() {
   $(".info").remove();
-  console.log("hideNodeInfo");
 }
 
 function getNodeInfoHtml(node) {
@@ -340,4 +341,45 @@ function getLineInfoHtml(line) {
   lineInfoHtml +=
     "<li><span class='info-content'>type=" + line.value + "</span></li></ul>";
   return lineInfoHtml;
+}
+
+function getDeprecatedLines(oldData, newData) {
+  console.log("arrive here");
+  var result = [];
+  if (oldData.length === 0 || oldData[0].lines.length === 0) {
+    drawPlot(newData);
+  } else if (newData.length === 0 || newData[0].lines.length === 0) {
+    return oldData[0].lines;
+  } else {
+    var oldLines = oldData[0].lines;
+    var newLines = newData[0].lines;
+    // count of line is same, no any line need to be removed
+    if (oldLines.length === newLines.length) {
+      return result;
+    } else {
+      let newLinesSet = new Set();
+
+      newLines.forEach(function (item, index, array) {
+        newLinesSet.add(item.id);
+      });
+
+      oldLines.forEach(function (item, index, array) {
+        if (!newLinesSet.has(item.id)) {
+          result.push(item.id);
+        }
+      });
+      console.log(result);
+      return result;
+    }
+  }
+}
+
+function removeLines(rlines) {
+  if (rlines.length === 0) {
+    return;
+  }
+
+  rlines.forEach(function (item, index, array) {
+    $("#" + item).remove();
+  });
 }
