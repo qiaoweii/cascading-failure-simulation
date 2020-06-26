@@ -13,6 +13,7 @@ var height = 500 - margin.top - margin.bottom;
 var moving = false;
 var currentValue = 0;
 var targetValue = width;
+var curIndex = 0;
 var timer = 0;
 var playButton = d3.select("#play-button");
 
@@ -277,26 +278,19 @@ function drawPlot(network) {
 
 function update(h) {
   // Update position and text of label according to slider scale.
-  var curIndex = Math.round(h);
+  curIndex = Math.round(h);
   var cx = x(curIndex);
 
   handle.attr("cx", cx);
   label.attr("x", cx).text(curIndex);
 
   // Update data of network.
-  var curData = dataset.filter(function (d) {
+  var curDataset = dataset.filter(function (d) {
     return d.id === curIndex;
   });
-  console.log(preData);
-  console.log(curData);
-  console.log(curIndex);
-  if (curIndex === 0) {
-    drawPlot(curData[0]);
-  } else {
-    console.log("remove diff");
-    var linesToRemove = getDeprecatedLines(preData, curData);
-    removeLines(linesToRemove);
-  }
+  var curData = curDataset[0];
+  var linesToRemove = getDeprecatedLines(preData, curData);
+  removeLines(linesToRemove);
   preData = curData;
 }
 
@@ -318,8 +312,7 @@ function getNodeInfoHtml(node) {
 
   if (node.type == 1) {
     nodeType = "generator";
-  }
-  if (node.type == 2) {
+  } else if (node.type == 2) {
     nodeType = "load";
   }
 
@@ -344,26 +337,46 @@ function getLineInfoHtml(line) {
 }
 
 function getDeprecatedLines(oldData, newData) {
-  console.log("arrive here");
   var result = [];
-  if (oldData.length === 0 || oldData[0].lines.length === 0) {
-    drawPlot(newData);
-  } else if (newData.length === 0 || newData[0].lines.length === 0) {
-    return oldData[0].lines;
+
+  // Case 1 : `OldData` is null/ empty/ does not have lines, then draw new plot.
+  if (
+    oldData === undefined ||
+    oldData.length === 0 ||
+    oldData.lines.length === 0
+  ) {
+    if (curIndex !== endRound) {
+      drawPlot(newData);
+    }
+
+    // Case 2 : `NewData` is null/ empty/ does not have lines, then draw new plot and `oldData` has lines,
+    // then remove all old lines.
+  } else if (
+    newData === undefined ||
+    newData.length === 0 ||
+    newData.lines.length === 0
+  ) {
+    oldData.lines.forEach(function (item) {
+      result.push(item.id);
+    });
+    return result;
+
+    // Case3 : Both `oldData` and `newData` has lines, then compare their lines.
   } else {
-    var oldLines = oldData[0].lines;
-    var newLines = newData[0].lines;
-    // count of line is same, no any line need to be removed
+    var oldLines = oldData.lines;
+    var newLines = newData.lines;
+
+    // If the count of lines is equal, no lines need to be removed.
     if (oldLines.length === newLines.length) {
       return result;
     } else {
       let newLinesSet = new Set();
 
-      newLines.forEach(function (item, index, array) {
+      newLines.forEach(function (item) {
         newLinesSet.add(item.id);
       });
 
-      oldLines.forEach(function (item, index, array) {
+      oldLines.forEach(function (item) {
         if (!newLinesSet.has(item.id)) {
           result.push(item.id);
         }
@@ -375,11 +388,11 @@ function getDeprecatedLines(oldData, newData) {
 }
 
 function removeLines(rlines) {
-  if (rlines.length === 0) {
+  if (rlines === undefined || rlines.length === 0) {
     return;
   }
 
-  rlines.forEach(function (item, index, array) {
+  rlines.forEach(function (item) {
     $("#" + item).remove();
   });
 }
