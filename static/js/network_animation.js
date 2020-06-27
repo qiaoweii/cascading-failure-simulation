@@ -3,10 +3,10 @@ import * as axios from "axios";
 import "../css/style.css";
 import * as network from "../data/network.json";
 
-var startRound = 0;
-var endRound = 9;
 var dataset = load_data();
 var preData = [];
+var startRound = 0;
+var endRound = dataset.length - 1;
 var margin = { top: 50, right: 50, bottom: 0, left: 50 };
 var width = 960 - margin.left - margin.right;
 var height = 500 - margin.top - margin.bottom;
@@ -15,17 +15,47 @@ var currentValue = 0;
 var targetValue = width;
 var curIndex = 0;
 var timer = 0;
+var flaskPort = 5000;
+var networkName = "ieee-5";
 var playButton = d3.select("#play-button");
 
 // Init dataset.
-function load_data() {
-  // Import data by Flask.
-  // let flaskPort = 5000;
-  // axios
-  //   .get(`http://localhost:${flaskPort}/get_data`)
-  //   .then((response) => show_image(response.data))
-  //   .catch((error) => console.log(error.response));
 
+// import data by flask
+// renderNetworkData(networkName);
+// d3.select("#network-data-select").on("change", function (d) {
+//   var selectedNetworkName = d3.select("#network-data-select").node().value;
+
+//   renderNetworkData(selectedNetworkName);
+// });
+
+// function renderNetworkData(networkName) {
+//   var dt = { name: networkName };
+
+//   var config = {
+//     headers: {
+//       "Content-Type": "application/json",
+//       "Access-Control-Allow-Origin": "*",
+//     },
+//   };
+
+//   axios
+//     .post(`http://localhost:${flaskPort}/get_data`, dt, config)
+//     .then((response) => setDataSet(response.data))
+//     .catch((error) => console.log(error.response));
+// }
+
+// function setDataSet(data) {
+//   window["dataSet"] = data;
+//   console.log(window["dataSet"]);
+//   callData();
+// }
+
+// function callData() {
+//   console.log(window["dataSet"]);
+// }
+
+function load_data() {
   //Import data by JSON
   console.log(network.default);
   var networkData = network.default;
@@ -397,8 +427,3 @@ function removeLines(rlines) {
     $("#" + item).remove();
   });
 }
-
-d3.select("#network-data-select").on("change", function (d) {
-  var selected = d3.select("#network-data-select").node().value;
-  console.log(selected);
-});

@@ -1,8 +1,15 @@
 import pandapower.networks
 
 
-def create_net():
-    return pandapower.networks.case9()
+def create_net(network_Name):
+    if network_Name == "ieee-9":
+        return pandapower.networks.case9()
+    elif network_Name == "ieee-14":
+        return pandapower.networks.case14()
+    elif network_Name == "ieee-30":
+        return pandapower.networks.case30()
+
+    return pandapower.networks.case5()
 
 
 def get_buses_data(net):
@@ -39,9 +46,11 @@ def get_lines_data(net):
     return all_line_data
 
 
-def collect_data():
+def collect_data(network_Name):
 
-    net = create_net()
+    net = create_net(network_Name)
+
+    # simulation algorithm
 
     # load bus data
     all_bus_data = get_buses_data(net)
