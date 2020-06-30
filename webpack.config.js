@@ -3,7 +3,7 @@ const path = require("path");
 module.exports = {
   mode: "development",
   devtool: "eval-source-map",
-  entry: "./static/js/network_animation.js",
+  entry: "./templates/src/network_animation.js",
   module: {
     rules: [
       {
@@ -26,10 +26,10 @@ module.exports = {
     extensions: ["*", ".js", ".css"],
   },
   devServer: {
-    contentBase: "./templates",
+    contentBase: "./templates/src",
   },
   output: {
-    path: path.resolve(__dirname, "templates"),
+    path: path.resolve(__dirname, "templates/src/dist"),
     filename: "bundle.js",
   },
 };

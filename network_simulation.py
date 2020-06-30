@@ -50,8 +50,13 @@ def collect_data(network_Name):
 
     net = create_net(network_Name)
 
-    # simulation algorithm
+    # Run simulation algorithm and get data at each round here.
+    data = simulate_cascading_failure(net)
 
+    return data
+
+
+def simulate_cascading_failure(net):
     # load bus data
     all_bus_data = get_buses_data(net)
     # load line data

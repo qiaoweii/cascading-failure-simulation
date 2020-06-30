@@ -4,7 +4,7 @@ from flask_cors import CORS
 
 # configuration
 DEBUG = True
-# TESTING = True
+TESTING = True
 
 # instantiate the app
 app = Flask(__name__,
@@ -15,12 +15,8 @@ app.config.from_object(__name__)
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-# sanity check route
-
-
-# @app.route("/")
-# def home():
-#     return render_template('index.html')
+default_port = 5000
+default_network_name = "ieee5"
 
 
 @app.route('/get_data', methods=['GET', 'POST'])
@@ -34,8 +30,8 @@ def get_data():
             error = "Invalid Input"
             return error
 
-    return collect_data("ieee5")
+    return collect_data(default_network_name)
 
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(port=default_port)
