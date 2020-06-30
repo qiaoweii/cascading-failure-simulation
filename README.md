@@ -36,7 +36,11 @@ There are two methods can fetched data from backend to frontend.
 
 Method 1. Use fake data stored in `network.json` file. (Used currently)
 
-The fake data includes the nodes and lines infomation in each round of cascading failure process. - Each round has an "id" to identify it, all nodes grouped as an array and all lines grouped as an array. - Each node has an "id" to identify it. For the value of "type", "0" stands for "bus", "1" stands for "generator", "1" stands for "load". - Each line has an "id" to identify it. The "source" stands for the "from_bus" value in pandapower network. The "target" stands for the "to_bus" value. And the "value" stands for the "length_km". - You can add other features easily by modifying the JSON file and changes the code in network_animation.js(line 219-234).
+The fake data includes the nodes and lines infomation in each round of cascading failure process.
+
+- Each round has an "id" to identify it, all nodes grouped as an array and all lines grouped as an array.
+- Each node has an "id" to identify it. For the value of "type", "0" stands for "bus", "1" stands for "generator", "1" stands for "load".
+- Each line has an "id" to identify it. The "source" stands for the "from_bus" value in pandapower network. The "target" stands for the "to_bus" value. And the "value" stands for the "length_km".
 
 You can use "npm start" to run the project.
 
@@ -50,5 +54,5 @@ The axios part in the front end is commented. If you want to run and test, just 
 
 ## 3 Other Information
 
-The port for backend server is 5000 by default.
-The frontend projectis running at http://localhost:8080 by defaul.
+The port for backend server is 5000 by default.  
+The frontend project is running on http://localhost:8080 by default.
