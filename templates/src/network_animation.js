@@ -1,8 +1,8 @@
 import * as d3 from "d3";
 import * as axios from "axios";
+import $ from "jquery";
 import "../../static/css/style.css";
 import * as network from "../../static/data/network.json";
-import $ from "jquery";
 
 let dataset = loadDataByJSON();
 let oldData = [];
@@ -67,7 +67,7 @@ let svg = d3
   .attr("height", height + margin.top + margin.bottom);
 
 // Build Scale.
-let x = d3
+let xScale = d3
   .scaleLinear()
   .domain([startRoundIndex, endRoundIndex])
   .range([0, boundaryPositionValue])
@@ -87,15 +87,15 @@ let trackDragAction = d3
   })
   .on("start drag", function () {
     currentPositionValue = d3.event.x;
-    curRoundIndex = Math.round(x.invert(currentPositionValue));
+    curRoundIndex = Math.round(xScale.invert(currentPositionValue));
     update();
   });
 
 slider
   .append("line")
   .attr("class", "track")
-  .attr("x1", x.range()[0])
-  .attr("x2", x.range()[1])
+  .attr("x1", xScale.range()[0])
+  .attr("x2", xScale.range()[1])
   .select(function () {
     return this.parentNode.appendChild(this.cloneNode(true));
   })
@@ -112,10 +112,10 @@ slider
   .attr("class", "ticks")
   .attr("transform", "translate(0," + 18 + ")")
   .selectAll("text")
-  .data(x.ticks(endRoundIndex - startRoundIndex + 1))
+  .data(xScale.ticks(endRoundIndex - startRoundIndex + 1))
   .enter()
   .append("text")
-  .attr("x", x)
+  .attr("x", xScale)
   .attr("y", 10)
   .attr("text-anchor", "middle")
   .text(function (d) {
@@ -158,7 +158,7 @@ playButton.on("click", function () {
 
     // Case 2.1 : The handle is immobile, i.e. the word on `playButton` is "Play",
     //            Once the button is clicked,
-    //            the the handle begin moving, the word on text changes to "Pause",
+    //            the the handle begins moving, the word on text changes to "Pause",
     //            and the interval is set to 50 ms.
   } else {
     moving = true;
@@ -172,11 +172,11 @@ playButton.on("click", function () {
  * Renew the information when make a step.
  */
 function step() {
-  curRoundIndex = Math.round(x.invert(currentPositionValue));
+  curRoundIndex = Math.round(xScale.invert(currentPositionValue));
   update();
   currentPositionValue = currentPositionValue + boundaryPositionValue / 151;
 
-  // Case 2.2 : Notice, When the handle is beyond the boundary of the slider, the handle should also stop.
+  // Case 2.2 : Notice, When the handle is beyond the boundary of the slider, it should also be stopped.
   //            The interval is cleared, the word on the `playButton` changes to "Play".
   if (currentPositionValue > boundaryPositionValue) {
     moving = false;
@@ -215,7 +215,7 @@ function drawPlot(network) {
 
   // Format network node data to object with attribute `name` and `type`.
   // Identify a node by its name.
-  // [Other attribute can be added here].
+  // [Other attributes can be added here].
   let myNodes = $.map(network.nodes, function (d) {
     return {
       name: d.id,
@@ -225,7 +225,7 @@ function drawPlot(network) {
 
   // Format network line data to object with attribute `id`, `source`, `target`, `value`.
   // Identify a line by its id.
-  // [Other attribute can be added here].
+  // [Other attributes can be added here].
   let myLines = $.map(network.lines, function (d) {
     return {
       id: d.id,
@@ -236,7 +236,7 @@ function drawPlot(network) {
   });
 
   // Combine the simuation picture with line data and node data.
-  // Set the lines and center of simuation.
+  // Set the radius and center of simuation.
   let simulation = d3
     .forceSimulation(myNodes)
     .force("link", d3.forceLink().links(myLines))
@@ -285,7 +285,7 @@ function drawPlot(network) {
     });
   });
 
-  // Add hover action to show node info.
+  // Add hover action to show node's and line's info.
   nodes
     .on("mouseenter", function (d) {
       d3.select(this).style("cursor", "pointer");
@@ -330,7 +330,7 @@ function drawPlot(network) {
  */
 function update() {
   // Update position and text of label according to slider scale.
-  let cx = x(curRoundIndex);
+  let cx = xScale(curRoundIndex);
 
   handle.attr("cx", cx);
   label.attr("x", cx).text(curRoundIndex);
@@ -427,7 +427,7 @@ function renewPlot(preData, curData) {
     preData.length === 0 ||
     preData.lines.length === 0
   ) {
-    // Based on the condition that Lines can only be deleted.
+    // Based on the condition that lines can only be deleted.
 
     // Case 1.1
     // If the `curRoundIndex` is equal to the `endRound`,
@@ -445,7 +445,7 @@ function renewPlot(preData, curData) {
 
     // Case 2 : `NewData` is null/ empty/ does not have lines.
     // In this case, lines not exist in current round, but exist in previous round.
-    // Then we may assume that lines in previous network are all needed to be removed.
+    // Then we may assume that lines in previous network are all going to be removed.
   } else if (
     curData === undefined ||
     curData.length === 0 ||
@@ -467,8 +467,8 @@ function renewPlot(preData, curData) {
     if (preLines.length === curLines.length) {
       return;
 
-      // Case 3.2 : If the count of lines in previous network is more then current network,
-      // it means lines in the `preLines` but not in `curLines` need to be removed.
+      // Case 3.2 : If the lines in previous network is more then current network,
+      // it means lines which are in the `preLines` but not in `curLines` need to be removed.
     } else if (preLines.length > curLines.length) {
       let curLinesSet = new Set();
 
