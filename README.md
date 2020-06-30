@@ -30,7 +30,21 @@ conda env create -f environment.yml
 
 ref: [create-an-environment-from-an-environment-yml-file](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file)
 
-### 2.2 Fetch data and run project
+### 2.2 Set up webpack
+
+```bash
+   npm install webpack-dev-server -g
+```
+
+```bash
+   npm install --save-dev webpack
+```
+
+```bash
+   npm i -g webpack webpack-cli
+```
+
+### 2.3 Fetch data and run project
 
 There are two methods can fetched data from backend to frontend.
 
@@ -54,6 +68,6 @@ The axios part in the front end is commented. If you want to run and test, just 
 
 ## 3 Other Information
 
-The port for backend server is 5000 by default.
+The port for backend server is `5000` by default.
 
 The frontend project is running on http://localhost:8080 by default.

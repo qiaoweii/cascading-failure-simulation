@@ -65,9 +65,11 @@ def simulate_cascading_failure(net):
     all_data = {"nodes": all_bus_data, "lines": all_line_data}
     return all_data
 
+
+# Optional Method: Export data to a JSON file.
+
 # import json
 # import os
-# import pandapower.networks
 
 # net = pandapower.networks.case9()
 
@@ -85,8 +87,6 @@ def simulate_cascading_failure(net):
 #     all_line_data = []
 
 #     for i in net.line.index:
-#         # print(i)
-#         # print(net.line[net.line.index == i])
 #         l = net.line[net.line.index == i]
 #         data = {"index": int(i), "from_bus": int(l.from_bus), "to_bus": int(l.to_bus), "length_km": float(l.length_km)}
 #         all_line_data.append(data)
